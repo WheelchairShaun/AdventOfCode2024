@@ -64,12 +64,17 @@ foreach (string line in section)
 }
 
 var updates = new List<int[]>();
+var unsorted = new List<int[]>();
 
 foreach (var p in pages)
 {
 	if (IsRightOrder(p))
 	{
 		updates.Add(p);
+	}
+	else
+	{
+		unsorted.Add(p);
 	}
 }
 
@@ -81,6 +86,36 @@ updates.ForEach(u =>
 });
 
 Console.WriteLine($"The sum of the middle page number from those correctly-ordered updates is {middle}");
+
+var sorted = new List<int[]>();
+
+while (unsorted.Count > 0)
+{
+	for (int i = 0; i < unsorted.Count; i++)
+	{
+		var p = FixOrder(unsorted[i]);
+
+		if (IsRightOrder(p))
+		{
+			sorted.Add(p);
+			unsorted.RemoveAt(i);
+		}
+		else
+		{
+			unsorted.RemoveAt(i);
+			unsorted.Add(p);
+		}
+	}
+}
+
+middle = 0L;
+sorted.ForEach(u =>
+{
+	var m = u.Length / 2;
+	middle += u[m];
+});
+
+Console.WriteLine($"The sum of the middle page number from those updates is {middle}");
 
 Console.ReadLine();
 
@@ -117,4 +152,46 @@ bool IsRightOrder(int[] pages)
 		}
 	}
 	return true;
+}
+
+int[] FixOrder(int[] pages)
+{
+	for (int i = 0; i < pages.Length; i++)
+	{
+		var page = pages[i];
+
+		// If this page does not have a rule, go to next page
+		if (rules.ContainsKey(pages[i]) == false)
+		{
+			continue;
+		}
+
+		// Get the rules for this page
+		var r = rules[pages[i]];
+
+		foreach (var p in r)
+		{
+			var loc = Array.FindIndex(pages, x => x == p);
+
+
+			// Page not in update, next rule
+			if (loc == -1)
+			{
+				continue;
+			}
+
+			// If rule is before current page, not in order
+			if (loc < i)
+			{
+				pages[i] = p;
+				pages[loc] = page;
+				i = 0;
+				continue;
+			}
+
+
+		}
+	}
+	return pages;
+
 }
